@@ -1,0 +1,6 @@
+# some basic tools for python development
+
+certifi
+pip-tools
+setuptools
+wheel
