@@ -83,9 +83,9 @@ mkdir -p "${SCRIPT_TMP}" "${PYTHON_INSTALL_DIR}"
 
     # set environment variables
     cp -f \
-        "${SCRIPT_DIR_REAL}/source.sh" \
-        "${PYTHON_INSTALL_DIR}/source.sh"
-    source "${PYTHON_INSTALL_DIR}/source.sh"
+        "${SCRIPT_DIR_REAL}/source.bash" \
+        "${PYTHON_INSTALL_DIR}/source.bash"
+    . "${PYTHON_INSTALL_DIR}/source.bash"
 
     # install some basic Python packages (use the latest `pip` to install)
     "${PYTHON}" -m pip install --upgrade pip
@@ -103,7 +103,7 @@ mkdir -p "${SCRIPT_TMP}" "${PYTHON_INSTALL_DIR}"
     fi
 
     echo_ -n "[INFO] Installation completed successfully. Please add the following line to your shell profile: "
-    echo_ "source \"${PYTHON_INSTALL_DIR}/source.sh\""
+    echo_ ". \"${PYTHON_INSTALL_DIR}/source.bash\""
 
     popd || exit 1
 }
