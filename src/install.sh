@@ -4,7 +4,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_DIR_REAL="$(readlink -f "${SCRIPT_DIR}")"
 SCRIPT_TMP="${SCRIPT_DIR}/.tmp"
 
-URL_PYTHON_TARBALL_DEFAULT="https://github.com/indygreg/python-build-standalone/releases/download/20250205/cpython-3.13.2+20250205-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+URL_PYTHON_TARBALL_DEFAULT="https://github.com/indygreg/python-build-standalone/releases/download/20250311/cpython-3.13.2+20250311-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 URL_PYTHON_TARBALL=${URL_PYTHON_TARBALL:-"${URL_PYTHON_TARBALL_DEFAULT}"}
 URL_PYTHON_TARBALL_SHA256="${URL_PYTHON_TARBALL}.sha256"
 
