@@ -29,9 +29,21 @@ echo_() {
     echo "$@" >&2
 }
 
+is_windows() {
+    [[ -n ${WINDIR} ]]
+}
+
 # ----- #
 # works #
 # ----- #
+
+if is_windows; then
+    PYTHON_EXE="${PYTHON_INSTALL_DIR}/python.exe"
+    PYTHON_SITE_PACKAGES_DIR="${PYTHON_INSTALL_DIR}/Lib/site-packages"
+else
+    PYTHON_EXE="${PYTHON_INSTALL_DIR}/bin/python"
+    PYTHON_SITE_PACKAGES_DIR="${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION_2}/site-packages"
+fi
 
 echo_ "[INFO] Requested Python download URL: ${URL_PYTHON_TARBALL}"
 echo_ "[INFO] Installing Python ${PYTHON_VERSION_2}: ${PYTHON_INSTALL_DIR}"
@@ -66,38 +78,32 @@ mkdir -p "${SCRIPT_TMP}" "${PYTHON_INSTALL_DIR}"
     echo_ "[INFO] Decompressing the tarball to \"${PYTHON_INSTALL_DIR}\""
     tar -C "${PYTHON_INSTALL_DIR}" -axf "${PYTHON_TARBALL_NAME}" --strip-components=1
 
-    PYTHON="${PYTHON_INSTALL_DIR}/bin/python"
-    if [[ ! -f ${PYTHON} ]]; then
+    if [[ ! -f ${PYTHON_EXE} ]]; then
         echo_ "[ERROR] Python executable is not found."
         exit 1
     fi
-    if ! "${PYTHON}" -VV; then
-        echo_ "[ERROR] Python executable is not runnable."
-        exit 1
-    fi
+    "${PYTHON_EXE}" -VV
 
     # this should make packaged PyInstaller APP smaller
     # @see https://github.com/indygreg/python-build-standalone/issues/275
-    echo_ "[INFO] Stripping Python shared libraries..."
-    strip --preserve-dates "${PYTHON_INSTALL_DIR}/lib/libpython${PYTHON_VERSION_2}.so"
+    if ! is_windows; then
+        echo_ "[INFO] Stripping Python shared libraries..."
+        strip --preserve-dates "${PYTHON_INSTALL_DIR}/lib/libpython${PYTHON_VERSION_2}.so"
+    fi
 
     # set environment variables
-    cp -f \
-        "${SCRIPT_DIR_REAL}/source.bash" \
-        "${PYTHON_INSTALL_DIR}/source.bash"
+    cp -f "${SCRIPT_DIR_REAL}/source.bash" "${PYTHON_INSTALL_DIR}/source.bash"
     . "${PYTHON_INSTALL_DIR}/source.bash"
 
     # install some basic Python packages (use the latest `pip` to install)
-    "${PYTHON}" -m pip install --upgrade pip
-    "${PYTHON}" -m pip install --upgrade -r "${SCRIPT_DIR_REAL}/requirements.txt"
+    "${PYTHON_EXE}" -m pip install --upgrade pip
+    "${PYTHON_EXE}" -m pip install --upgrade -r "${SCRIPT_DIR_REAL}/requirements.txt"
 
     # fixes SSL cert file location
     # @see https://github.com/indygreg/python-build-standalone/issues/259#issuecomment-2134009017
-    cp -f \
-        "${SCRIPT_DIR_REAL}/sitecustomize.py" \
-        "${PYTHON_INSTALL_DIR}/lib/python${PYTHON_VERSION_2}/site-packages/sitecustomize.py"
+    cp -f "${SCRIPT_DIR_REAL}/sitecustomize.py" "${PYTHON_SITE_PACKAGES_DIR}/sitecustomize.py"
 
-    if ! "${PYTHON}" "${SCRIPT_DIR_REAL}/test_ssl.py"; then
+    if ! "${PYTHON_EXE}" "${SCRIPT_DIR_REAL}/test_ssl.py"; then
         echo_ "[ERROR] SSL certificate verification failed."
         exit 1
     fi
