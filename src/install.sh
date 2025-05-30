@@ -74,6 +74,13 @@ mkdir -p "${SCRIPT_TMP}" "${PYTHON_INSTALL_DIR}"
         exit 1
     fi
 
+    # remove old pip (the downloaded tarball has pip installed)
+    PIP_DIR="${PYTHON_SITE_PACKAGES_DIR}/pip"
+    if [[ -d ${PIP_DIR} ]]; then
+        echo_ "[INFO] Removing old pip installation: ${PIP_DIR}"
+        rm -rf -- "${PIP_DIR}" "${PIP_DIR}-"*.dist-info/
+    fi
+
     # decompress `PYTHON_TARBALL`
     echo_ "[INFO] Decompressing the tarball to \"${PYTHON_INSTALL_DIR}\""
     tar -C "${PYTHON_INSTALL_DIR}" -axf "${PYTHON_TARBALL_NAME}" --strip-components=1
@@ -82,7 +89,7 @@ mkdir -p "${SCRIPT_TMP}" "${PYTHON_INSTALL_DIR}"
         echo_ "[ERROR] Python executable is not found."
         exit 1
     fi
-    "${PYTHON_EXE}" -VV
+    echo_ "[INFO] Installed: $("${PYTHON_EXE}" -VV)"
 
     # this should make packaged PyInstaller APP smaller
     # @see https://github.com/indygreg/python-build-standalone/issues/275
