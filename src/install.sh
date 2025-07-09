@@ -4,9 +4,9 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPT_DIR_REAL="$(readlink -f "${SCRIPT_DIR}")"
 SCRIPT_TMP="${SCRIPT_DIR}/.tmp"
 
-URL_PYTHON_TARBALL_DEFAULT="https://github.com/indygreg/python-build-standalone/releases/download/20250630/cpython-3.13.5+20250630-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+URL_PYTHON_TARBALL_DEFAULT="https://github.com/indygreg/python-build-standalone/releases/download/20250712/cpython-3.13.5+20250712-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
 URL_PYTHON_TARBALL=${URL_PYTHON_TARBALL:-"${URL_PYTHON_TARBALL_DEFAULT}"}
-URL_PYTHON_TARBALL_SHA256="${URL_PYTHON_TARBALL}.sha256"
+URL_PYTHON_TARBALL_SHA256="$(dirname "$URL_PYTHON_TARBALL")/SHA256SUMS"
 
 # the Python tarball name like "cpython-3.12.3+20240415-x86_64-unknown-linux-gnu-install_only.tar.gz"
 PYTHON_TARBALL_NAME=$(basename "${URL_PYTHON_TARBALL}")
@@ -53,23 +53,26 @@ mkdir -p "${SCRIPT_TMP}" "${PYTHON_INSTALL_DIR}"
 {
     pushd "${SCRIPT_TMP}" || exit 1
 
+    # fetch SHA256SUMS file
+    echo_ "[INFO] Fetching SHA256SUMS file..."
+    checksum_golden=$(curl -sL "${URL_PYTHON_TARBALL_SHA256}")
+    if [[ -z ${checksum_golden} ]]; then
+        echo_ "[ERROR] Failed to retrieve SHA256SUMS file: ${URL_PYTHON_TARBALL_SHA256}"
+        exit 1
+    fi
+
     # download tarball
     echo_ "[INFO] Downloading Python tarball..."
     if [[ ! -f ${PYTHON_TARBALL_NAME} ]]; then
         curl -sL --output "${PYTHON_TARBALL_NAME}" "${URL_PYTHON_TARBALL}"
     fi
 
-    # check SHA256 checksum
-    checksum_golden=$(curl -sL "${URL_PYTHON_TARBALL_SHA256}")
+    # verify SHA256 checksum
     checksum_actual=$(sha256sum "${PYTHON_TARBALL_NAME}" | awk '{print $1}')
-    echo_ "[INFO] Tarball golden checksum: ${checksum_golden}"
-    echo_ "[INFO] Tarball actual checksum: ${checksum_actual}"
-    if [[ -z ${checksum_golden} ]] || [[ -z ${checksum_actual} ]]; then
-        echo_ "[ERROR] Failed to retrieve SHA256 checksum."
-        exit 1
-    fi
-    if [[ ${checksum_actual} != "${checksum_golden}" ]]; then
-        echo_ "[ERROR] SHA256 checksum doesn't match. Incorrect tarball deleted."
+    echo_ "[INFO] Verifying SHA256 checksum of the downloaded tarball..."
+    echo_ "[INFO] Downloaded tarball checksum: ${checksum_actual}"
+    if [[ ! ${checksum_golden} =~ ${checksum_actual} ]]; then
+        echo_ "[ERROR] SHA256 checksum mismatch. Probably the download is corrupted."
         rm -f "${PYTHON_TARBALL_NAME}" # incomplete download
         exit 1
     fi
