@@ -21,12 +21,12 @@ __pbs_provide_python() {
     CPATH="${SCRIPT_DIR}/include:${CPATH}"
     export CPATH
 
-    if __pbs_is_windows; then
-        LD_LIBRARY_PATH="${SCRIPT_DIR}/DLLs:${LD_LIBRARY_PATH}"
-    else
-        LD_LIBRARY_PATH="${SCRIPT_DIR}/lib:${LD_LIBRARY_PATH}"
-    fi
-    export LD_LIBRARY_PATH
+    # if __pbs_is_windows; then
+    #     LD_LIBRARY_PATH="${SCRIPT_DIR}/DLLs:${LD_LIBRARY_PATH}"
+    # else
+    #     LD_LIBRARY_PATH="${SCRIPT_DIR}/lib:${LD_LIBRARY_PATH}"
+    # fi
+    # export LD_LIBRARY_PATH
 }
 
 __pbs_provide_python
